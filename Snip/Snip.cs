@@ -397,10 +397,11 @@ namespace Winter
             // Make sure this is set before starting the timer.
             //if (Globals.DebuggingIsEnabled)
             //{
-                //Debug.MeasureMethod(Globals.CurrentPlayer.Update); // Writes a LOT of data
+            //Debug.MeasureMethod(Globals.CurrentPlayer.Update); // Writes a LOT of data
             //}
             //else
             //{
+            Console.WriteLine("Tick");
                 Globals.CurrentPlayer.Update();
             //}
         }

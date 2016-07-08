@@ -187,11 +187,16 @@ namespace Winter
                 {
                     jsonWebClient.Encoding = System.Text.Encoding.UTF8;
 
-                    var downloadedJson = jsonWebClient.DownloadString(
-                        string.Format(
+                    var downloadedJson = jsonWebClient.DownloadString(string.Format(
                             CultureInfo.InvariantCulture,
                             "https://api.spotify.com/v1/search?q={0}&type=track",
-                            HttpUtility.UrlEncode(spotifyTitle.Replace('/', ' '))));
+                            HttpUtility.UrlEncode(spotifyTitle)));
+
+                    Console.WriteLine("https://api.spotify.com/v1/search?q={0}&type=track",(spotifyTitle.Replace('/', ' ')));
+                    Console.WriteLine(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "https://api.spotify.com/v1/search?q={0}&type=track",
+                            HttpUtility.UrlEncode(spotifyTitle)));
 
                     if (!string.IsNullOrEmpty(downloadedJson))
                     {
