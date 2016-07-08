@@ -65,7 +65,11 @@ Inside foobar2000 open up the preferences window.
 
 Expand the Display options and select Default User Interface.  At the bottom
 of the window you will need to change "Window title" to look like this:
-%title% – %artist%
+%path%
+
+Snip will firstly check if the file being played has a cover picture as id3 tag.
+If not Snip will search for cover pictures in the music file directory.
+If Snip also doesn't find any images there it will query the spotify api.
 
 Note
 ----
