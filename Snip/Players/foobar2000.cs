@@ -87,7 +87,7 @@ namespace Winter
                                 
 
                                 TagLib.File file = TagLib.File.Create(path);
-
+                                Console.WriteLine(String.Format("Song: {0} {1} {2}",file.Tag.Title,file.Tag.FirstPerformer,file.Tag.Album));
                                 TextHandler.UpdateText(file.Tag.Title, file.Tag.FirstPerformer, file.Tag.Album);
 
                                 // Album artwork not supported by foobar2000
@@ -99,11 +99,12 @@ namespace Winter
                                     string artworkImagePath = string.Format(CultureInfo.InvariantCulture, @"{0}\{1}.jpg", artworkDirectory, "Snip_Artwork");
                                     if (file.Tag.Pictures.Length > 0)
                                     {
+                                        Console.WriteLine("Cover from ID3 Tag");
                                         IPicture pic = file.Tag.Pictures[0];
-       
-                                        System.IO.File.WriteAllBytes(artworkImagePath, pic.Data.Data);                                   
+                                        System.IO.File.WriteAllBytes(artworkImagePath, pic.Data.Data);                                                                       
                                     } else if((folderCoverPath = getFolderCover(path)) != null)
                                     {
+                                        Console.WriteLine("Cover from Folder");
                                         System.IO.File.Copy(folderCoverPath, artworkImagePath,true);
                                     } else
                                     {
@@ -121,6 +122,7 @@ namespace Winter
 
                                                 if (Globals.SaveAlbumArtwork)
                                                 {
+                                                    Console.WriteLine("Cover from Spotify");
                                                     this.HandleSpotifyAlbumArtwork(jsonSummary[0].name.ToString());
                                                 }
                                             }
@@ -128,6 +130,7 @@ namespace Winter
                                             {
                                                 // In the event of an advertisement (or any song that returns 0 results)
                                                 // then we'll just write the whole title as a single string instead.
+                                                Console.WriteLine("No Cover");
                                                 this.SaveBlankImage();
                                                 TextHandler.UpdateText(windowTitleFull);
                                             }

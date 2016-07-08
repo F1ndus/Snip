@@ -400,8 +400,7 @@ namespace Winter
             //Debug.MeasureMethod(Globals.CurrentPlayer.Update); // Writes a LOT of data
             //}
             //else
-            //{
-            Console.WriteLine("Tick");
+            //{           
                 Globals.CurrentPlayer.Update();
             //}
         }
