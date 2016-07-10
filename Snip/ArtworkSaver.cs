@@ -231,19 +231,16 @@ namespace Winter
 
                             string imageUrl = jsonSummary.thumbnail_url.ToString().Replace("cover", string.Format(CultureInfo.InvariantCulture, "{0}", (int)Globals.ArtworkResolution));
 
-                            if (Globals.KeepSpotifyAlbumArtwork)
-                            {
-                                webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadSpotifyFileCompleted);
-                                webClient.DownloadFileAsync(new Uri(imageUrl), artworkImagePath, artworkImagePath);
-                            }
-                            else
-                            {
-                                webClient.DownloadFileAsync(new Uri(imageUrl), this.DefaultArtworkFilePath);
-                            }
+
+                            //bad but needs call onfinish will break history logic but idc atm
+                            webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadSpotifyFileCompleted);
+                            webClient.DownloadFileAsync(new Uri(imageUrl), this.DefaultArtworkFilePath);
+
 
                             this.SavedBlankImage = false;
                         }
                     }
+
                     catch (WebException)
                     {
                         this.SaveBlankImage();
@@ -256,13 +253,17 @@ namespace Winter
         {
             if (e.Error == null)
             {
-                try
+                if (Globals.KeepSpotifyAlbumArtwork)
                 {
-                    System.IO.File.Copy((string)e.UserState, this.DefaultArtworkFilePath, true);
-                }
-                catch (IOException)
-                {
-                    this.SaveBlankImage();
+                    try
+                    {
+                        System.IO.File.Copy((string)e.UserState, this.DefaultArtworkFilePath, true);
+                    }
+                    catch (IOException)
+                    {
+                        this.SaveBlankImage();
+                    }
+                
                 }
                 Thread.Sleep(100);
                 onFinish();
