@@ -59,3 +59,6 @@ using System.Runtime.InteropServices;
 
 [assembly: NeutralResourcesLanguageAttribute("en-US")]
 [assembly: CLSCompliant(false)]
+[assembly: InternalsVisibleTo("Snip.Tests")]
+[assembly: InternalsVisibleTo("Snip.Explorables")]
+

@@ -111,6 +111,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArtworkColor.cs" />
+    <Compile Include="ArtworkSaver.cs" />
     <Compile Include="AssemblyInformation.cs" />
     <Compile Include="CheckVersion.cs" />
     <Compile Include="Globals.cs" />

@@ -28,7 +28,7 @@ namespace Winter
     using System.Web;
     using System.Windows.Forms;
     using SimpleJson;
-
+    using System.Drawing;
     internal sealed class Spotify : MediaPlayer
     {
         private string json = string.Empty;
@@ -71,38 +71,18 @@ namespace Winter
                             }
                             else
                             {
-                                this.DownloadJson(spotifyTitle);
-
-                                dynamic jsonSummary = SimpleJson.DeserializeObject(this.json);
-
-                                if (jsonSummary != null)
+                                string title = spotifyTitle.Split('-')[0].Trim();
+                                string interpret = spotifyTitle.Split('-')[1].Trim();
+                                string album = "";                          
+                                ArtworkSaver saver = new ArtworkSaver();
+                                this.LastTitle = spotifyTitle;
+                                string[] albumtitle = null;
+                                if (( albumtitle = saver.getCover(title, interpret)) != null)
                                 {
-                                    var numberOfResults = jsonSummary.tracks.total;
-
-                                    if (numberOfResults > 0)
-                                    {
-                                        jsonSummary = SimpleJson.DeserializeObject(jsonSummary.tracks["items"].ToString());
-
-                                        TextHandler.UpdateText(
-                                            jsonSummary[0].name.ToString(),
-                                            jsonSummary[0].artists[0].name.ToString(),
-                                            jsonSummary[0].album.name.ToString());
-
-                                        if (Globals.SaveAlbumArtwork)
-                                        {
-                                            this.HandleSpotifyAlbumArtwork(jsonSummary[0].name.ToString());
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // In the event of an advertisement (or any song that returns 0 results)
-                                        // then we'll just write the whole title as a single string instead.
-                                        TextHandler.UpdateText(spotifyTitle);
-                                    }
+                                    album = albumtitle[0];                           
                                 }
+                                TextHandler.UpdateText(title, interpret, album);
                             }
-
-                            this.LastTitle = spotifyTitle;
                         }
                     }
                     else
