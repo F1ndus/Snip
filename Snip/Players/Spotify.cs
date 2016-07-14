@@ -66,7 +66,7 @@ namespace Winter
                                 {
                                     this.SaveBlankImage();
                                 }
-
+                                this.LastTitle = spotifyTitle;
                                 TextHandler.UpdateTextAndEmptyFilesMaybe(Globals.ResourceManager.GetString("NoTrackPlaying"));
                             }
                             else
