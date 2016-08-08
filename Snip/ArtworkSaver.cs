@@ -268,6 +268,11 @@ namespace Winter
                 Thread.Sleep(100);
                 onFinish();
             }
+            else
+            {
+                Console.WriteLine(e.Error.Message);
+                this.SaveBlankImage();
+            }
         }
 
         private class WebClientWithShortTimeout : WebClient

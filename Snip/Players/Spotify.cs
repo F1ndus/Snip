@@ -77,7 +77,7 @@ namespace Winter
                                 ArtworkSaver saver = new ArtworkSaver();
                                 this.LastTitle = spotifyTitle;
                                 string[] albumtitle = null;
-                                if (( albumtitle = saver.getCover(title, interpret)) != null)
+                                if (( albumtitle = saver.getCover(interpret, title)) != null)
                                 {
                                     album = albumtitle[0];                           
                                 }
@@ -300,6 +300,9 @@ namespace Winter
                 {
                     this.SaveBlankImage();
                 }
+            } else
+            {
+                Console.WriteLine(e.Error.Message);
             }
         }
 
