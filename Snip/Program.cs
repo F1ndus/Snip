@@ -23,12 +23,40 @@ namespace Winter
     using System;
     using System.Threading;
     using System.Windows.Forms;
+    using SpotifyAPI.Web; //Base Namespace
+    using SpotifyAPI.Web.Auth; //All Authentication-related classes
+    using SpotifyAPI.Web.Enums; //Enums
+    using SpotifyAPI.Web.Models; //Models for the JSON-response
 
     public static class Program
     {
-        [STAThread]
-        public static void Main()
+
+        public static SpotifyWebAPI spotify = null;
+
+        public static async void meem()
         {
+            WebAPIFactory webApiFactory = new WebAPIFactory(
+                    "http://localhost",
+                    8000,
+                    "x",
+                    Scope.UserReadPrivate,
+                    TimeSpan.FromSeconds(20)
+               );
+
+            spotify = await webApiFactory.GetWebApi();
+
+       
+        }
+
+        public static  void Main(String[] args)
+        {
+
+            meem();
+
+            
+               
+        //...
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -49,6 +77,9 @@ namespace Winter
                 // {
                 //     MessageBox.Show("Another instance of " + Application.ProductName + " is already running.", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 // }
+            } catch (Exception e)
+            {
+                Console.WriteLine("Exception occured: ", e.Message);
             }
             finally
             {

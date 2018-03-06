@@ -80,23 +80,41 @@ namespace Winter
                             }
                             else
                             {
-                                // Winamp window titles look like "[%album artist% - ]['['%album%[ CD%discnumber%][ #%tracknumber%]']' ]%title%[ '//' %track artist%]".
-                                // Require that the user use ATF and replace the format with something like:
-                                // %artist% – %title%
-                                string windowTitleFull = System.Text.RegularExpressions.Regex.Replace(foobar2000Title, @"\s+\[foobar2000 v\d+\.\d+\.\d+\]", string.Empty);
-                                string path = windowTitleFull;
-                                
-
-                                TagLib.File file = TagLib.File.Create(path);
-                                Console.WriteLine(String.Format("Song: {0} {1} {2}",file.Tag.Title,file.Tag.FirstPerformer,file.Tag.Album));
-                                TextHandler.UpdateText(file.Tag.Title, file.Tag.FirstPerformer, file.Tag.Album);
-
-                                // Album artwork not supported by foobar2000
-                                if (Globals.SaveAlbumArtwork)
+                                try
                                 {
-                                    ArtworkSaver saver = new ArtworkSaver();
-                                    saver.getCover(path);                               
+                                    // Winamp window titles look like "[%album artist% - ]['['%album%[ CD%discnumber%][ #%tracknumber%]']' ]%title%[ '//' %track artist%]".
+                                    // Require that the user use ATF and replace the format with something like:
+                                    // %artist% – %title%
+                                    string windowTitleFull = System.Text.RegularExpressions.Regex.Replace(foobar2000Title, @"\s+\[foobar2000 v\d+\.\d+\.\d+\]", string.Empty);
+                                    string path = windowTitleFull;
+
+                                    try
+                                    {
+                                        TagLib.File file = TagLib.File.Create(path);
+                                        Console.WriteLine(String.Format("Song: {0} {1} {2}", file.Tag.Title, file.Tag.FirstPerformer, file.Tag.Album));
+                                        // TextHandler.UpdateText(file.Tag.Title, file.Tag.FirstPerformer, file.Tag.Album);
+
+                                        // Album artwork not supported by foobar2000
+                                        if (Globals.SaveAlbumArtwork)
+                                        {
+                                            ArtworkSaver saver = new ArtworkSaver();
+                                            saver.getCover(path);
+                                        }
+                                    }
+                                    catch (UnsupportedFormatException e)
+                                    {
+                                        Console.WriteLine(e.Message);
+                                        ArtworkSaver saver = new ArtworkSaver();
+                                        saver.SaveBlankImage();
+                                    }
+
                                 }
+                                catch ( Exception e)
+                                {
+
+                                    Console.WriteLine(e);
+                                }
+
                             }
 
                             this.LastTitle = foobar2000Title;
