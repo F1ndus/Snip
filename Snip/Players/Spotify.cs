@@ -44,6 +44,7 @@ namespace Winter
             }
             else
             {
+
                 // Make sure the process is still valid.
                 if (this.Handle != IntPtr.Zero && this.Handle != null)
                 {
@@ -64,24 +65,21 @@ namespace Winter
                             {
                                 if (Globals.SaveAlbumArtwork)
                                 {
-                                    this.SaveBlankImage();
+                                    //this.SaveBlankImage();
                                 }
-                                this.LastTitle = spotifyTitle;
-                                TextHandler.UpdateTextAndEmptyFilesMaybe(Globals.ResourceManager.GetString("NoTrackPlaying"));
+                                //this.LastTitle = spotifyTitle;
+                                TextHandler.UpdateText(Globals.ResourceManager.GetString("NoTrackPlaying"));
                             }
                             else
-                            {
-                                string title = spotifyTitle.Split('-')[0].Trim();
-                                string interpret = spotifyTitle.Split('-')[1].Trim();
-                                string album = "";                          
+                            {                       
                                 ArtworkSaver saver = new ArtworkSaver();
+                                var pcon = Program.spotify.GetPlayingTrack();
+                                saver.getCover(pcon);
                                 this.LastTitle = spotifyTitle;
-                                string[] albumtitle = null;
-                                //if (( albumtitle = saver.getCover(interpret, title)) != null)
-                                //{
-                                //    album = albumtitle[0];                           
-                                //}
-                                //TextHandler.UpdateText(title, interpret, album);
+                                string title = pcon.Item.Name;
+                                string interpret = pcon.Item.Artists[0].Name;
+                                string album = pcon.Item.Album.Name;
+                                TextHandler.UpdateText(title + "\n" + interpret + "\n" + album);
                             }
                         }
                     }
@@ -157,166 +155,6 @@ namespace Winter
 
             this.Found = false;
             this.NotRunning = true;
-        }
-
-        private void DownloadJson(string spotifyTitle)
-        {
-            using (WebClient jsonWebClient = new WebClient())
-            {
-                try
-                {
-                    jsonWebClient.Encoding = System.Text.Encoding.UTF8;
-
-                    var downloadedJson = jsonWebClient.DownloadString(string.Format(
-                            CultureInfo.InvariantCulture,
-                            "https://api.spotify.com/v1/search?q={0}&type=track",
-                            HttpUtility.UrlEncode(spotifyTitle)));
-
-                    Console.WriteLine("https://api.spotify.com/v1/search?q={0}&type=track",(spotifyTitle.Replace('/', ' ')));
-                    Console.WriteLine(string.Format(
-                            CultureInfo.InvariantCulture,
-                            "https://api.spotify.com/v1/search?q={0}&type=track",
-                            HttpUtility.UrlEncode(spotifyTitle)));
-
-                    if (!string.IsNullOrEmpty(downloadedJson))
-                    {
-                        this.json = downloadedJson;
-                    }
-                }
-                catch (WebException)
-                {
-                    this.json = string.Empty;
-                    this.SaveBlankImage();
-                }
-            }
-        }
-
-        // TODO: Re-write this to download the artwork link supplied in the primary JSON file instead of using the old embedded web link.
-        private void HandleSpotifyAlbumArtwork(string songTitle)
-        {
-            string albumId = string.Empty;
-
-            try
-            {
-                if (!string.IsNullOrEmpty(this.json))
-                {
-                    dynamic jsonSummary = SimpleJson.DeserializeObject(json);
-
-                    if (jsonSummary != null)
-                    {
-                        jsonSummary = SimpleJson.DeserializeObject(jsonSummary.tracks["items"].ToString());
-
-                        foreach (dynamic jsonTrack in jsonSummary)
-                        {
-                            string modifiedTitle = TextHandler.UnifyTitles(songTitle);
-                            string foundTitle = TextHandler.UnifyTitles(jsonTrack.name.ToString());
-
-                            if (foundTitle == modifiedTitle)
-                            {
-                                dynamic jsonAlbum = SimpleJson.DeserializeObject(jsonTrack["album"].ToString());
-                                albumId = jsonAlbum.uri.ToString();
-
-                                break;
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(albumId))
-                        {
-                            albumId = albumId.Substring(albumId.LastIndexOf(':') + 1);
-                            this.DownloadSpotifyAlbumArtwork(albumId);
-                        }
-                    }
-                }
-            }
-            catch (FileNotFoundException)
-            {
-                this.SaveBlankImage();
-            }
-        }
-
-        private void DownloadSpotifyAlbumArtwork(string albumId)
-        {
-            string artworkDirectory = @Application.StartupPath + @"\SpotifyArtwork";
-            string artworkImagePath = string.Format(CultureInfo.InvariantCulture, @"{0}\{1}.jpg", artworkDirectory, albumId);
-
-            if (!Directory.Exists(artworkDirectory))
-            {
-                Directory.CreateDirectory(artworkDirectory);
-            }
-
-            FileInfo fileInfo = new FileInfo(artworkImagePath);
-
-            if (fileInfo.Exists && fileInfo.Length > 0)
-            {
-                fileInfo.CopyTo(this.DefaultArtworkFilePath, true);
-            }
-            else
-            {
-                this.SaveBlankImage();
-
-                using (WebClientWithShortTimeout webClient = new WebClientWithShortTimeout())
-                {
-                    try
-                    {
-                        webClient.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko";
-                        var downloadedJson = webClient.DownloadString(string.Format(CultureInfo.InvariantCulture, "https://embed.spotify.com/oembed/?url=spotify:album:{0}", albumId));
-
-                        if (!string.IsNullOrEmpty(downloadedJson))
-                        {
-                            dynamic jsonSummary = SimpleJson.DeserializeObject(downloadedJson);
-
-                            string imageUrl = jsonSummary.thumbnail_url.ToString().Replace("cover", string.Format(CultureInfo.InvariantCulture, "{0}", (int)Globals.ArtworkResolution));
-
-                            if (Globals.KeepSpotifyAlbumArtwork)
-                            {
-                                webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadSpotifyFileCompleted);
-                                webClient.DownloadFileAsync(new Uri(imageUrl), artworkImagePath, artworkImagePath);
-                            }
-                            else
-                            {
-                                webClient.DownloadFileAsync(new Uri(imageUrl), this.DefaultArtworkFilePath);
-                            }
-
-                            this.SavedBlankImage = false;
-                        }
-                    }
-                    catch (WebException)
-                    {
-                        this.SaveBlankImage();
-                    }
-                }
-            }
-        }
-
-        private void DownloadSpotifyFileCompleted(object sender, AsyncCompletedEventArgs e)
-        {
-            if (e.Error == null)
-            {
-                try
-                {
-                    File.Copy((string)e.UserState, this.DefaultArtworkFilePath, true);
-                }
-                catch (IOException)
-                {
-                    this.SaveBlankImage();
-                }
-            } else
-            {
-                Console.WriteLine(e.Error.Message);
-            }
-        }
-
-        private class WebClientWithShortTimeout : WebClient
-        {
-            // How many seconds before webclient times out and moves on.
-            private const int WebClientTimeoutSeconds = 10;
-
-            protected override WebRequest GetWebRequest(Uri address)
-            {
-                WebRequest webRequest = base.GetWebRequest(address);
-                webRequest.Timeout = WebClientTimeoutSeconds * 60 * 1000;
-                return webRequest;
-            }
         }
     }
 }

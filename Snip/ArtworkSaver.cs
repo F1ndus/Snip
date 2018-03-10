@@ -29,6 +29,11 @@ namespace Winter
         private readonly string defaultArtworkFile = @Application.StartupPath + @"\Snip_Artwork.jpg";
         private string json = string.Empty;
 
+        public void getCover(PlaybackContext con)
+        {
+            DownloadSpotifyAlbumArtwork(con.Item.Album.Images.First());
+        }
+
 
         public void getCover(string path)
         {
@@ -95,6 +100,23 @@ namespace Winter
                 return null;
         }
 
+        private void DownloadSpotifyAlbumArtwork(SpotifyAPI.Web.Models.Image image)
+        {
+            using (WebClientWithShortTimeout webClient = new WebClientWithShortTimeout())
+                try
+            {
+                webClient.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko";
+                webClient.DownloadFile(image.Url.ToString(), this.defaultArtworkFile);
+                Thread.Sleep(10);
+            }
+
+            catch (Exception)
+            {
+                this.SaveBlankImage();
+            }
+           
+        }
+
 
         private void DownloadSpotifyAlbumArtwork(string searchString)
         {
@@ -107,8 +129,7 @@ namespace Winter
                         Paging<SimpleAlbum> album = Program.spotify.SearchItems(searchString, SearchType.All).Albums;
                         var meem = album.Items[0].Images[0];
 
-                        webClient.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko";
-                        webClient.DownloadFile(meem.Url.ToString(),this.defaultArtworkFile);             
+                    DownloadSpotifyAlbumArtwork(meem);
                     }
 
                     catch (Exception)

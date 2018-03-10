@@ -39,7 +39,7 @@ namespace Winter
                     "http://localhost",
                     8000,
                     "x",
-                    Scope.UserReadPrivate,
+                    Scope.UserReadPlaybackState,
                     TimeSpan.FromSeconds(20)
                );
 
