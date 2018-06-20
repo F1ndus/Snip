@@ -29,28 +29,41 @@ namespace Winter
     using System.Windows.Forms;
     using SimpleJson;
     using System.Drawing;
+    using System.Diagnostics;
+    using System.Collections.Generic;
+    using System.Threading;
+
     internal sealed class Spotify : MediaPlayer
     {
         private string json = string.Empty;
+        Boolean active = false;
+        Process proc;
 
         public override void Update()
         {
-            if (!this.Found)
-            {
-                this.Handle = UnsafeNativeMethods.FindWindow("SpotifyMainWindow", null);
 
+            Process[] processlist = Process.GetProcesses();
+            foreach (Process p in processlist)
+            {
+                if (p.ProcessName.Equals("Spotify") && p.MainWindowTitle.Length > 0)
+                {
+                    this.NotRunning = true;
+                    this.Found = true;
+                    this.proc = p;
+                    break;
+                }
+                this.proc = null;
                 this.Found = true;
                 this.NotRunning = false;
             }
-            else
-            {
 
-                // Make sure the process is still valid.
-                if (this.Handle != IntPtr.Zero && this.Handle != null)
+
+            // Make sure the process is still valid.
+            if (proc != null)
                 {
-                    int windowTextLength = UnsafeNativeMethods.GetWindowText(this.Handle, this.Title, this.Title.Capacity);
-
-                    string spotifyTitle = this.Title.ToString();
+     
+                    string spotifyTitle = this.proc.MainWindowTitle;
+                    int windowTextLength = spotifyTitle.Length;
 
                     this.Title.Clear();
 
@@ -61,26 +74,43 @@ namespace Winter
                         // This prevents unnecessary calls and downloads.
                         if (spotifyTitle != this.LastTitle)
                         {
-                            if (spotifyTitle == "Spotify")
+                        if (spotifyTitle == "Spotify")
+                        {
+                            if (Globals.SaveAlbumArtwork)
                             {
-                                if (Globals.SaveAlbumArtwork)
-                                {
-                                    //this.SaveBlankImage();
-                                }
-                                //this.LastTitle = spotifyTitle;
-                                TextHandler.UpdateText(Globals.ResourceManager.GetString("NoTrackPlaying"));
+                                //this.SaveBlankImage();
                             }
-                            else
-                            {                       
+                            //this.LastTitle = spotifyTitle;
+                            //TextHandler.UpdateText(Globals.ResourceManager.GetString("NoTrackPlaying"));
+                        }
+                        else
+                        {
+                            try
+                            {
+                                Thread.Sleep(1000);
                                 ArtworkSaver saver = new ArtworkSaver();
                                 var pcon = Program.spotify.GetPlayingTrack();
-                                saver.getCover(pcon);
-                                this.LastTitle = spotifyTitle;
-                                string title = pcon.Item.Name;
-                                string interpret = pcon.Item.Artists[0].Name;
-                                string album = pcon.Item.Album.Name;
-                                TextHandler.UpdateText(title + "\n" + interpret + "\n" + album);
+                                if (pcon != null && pcon.Item != null)
+                                {
+                                    saver.getCover(pcon);
+                                    this.LastTitle = spotifyTitle;
+                                    string title = pcon.Item.Name;
+                                    string interpret = pcon.Item.Artists[0].Name;
+                                    string album = pcon.Item.Album.Name;
+                                    TextHandler.UpdateText(title + "\n" + interpret + "\n" + album);
+                                }
+                                else
+                                {
+
+                                    Console.WriteLine("XD NULL XDXDXDXD");
+                                }
+
                             }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("meem");
+                            }
+                        }
                         }
                     }
                     else
@@ -98,7 +128,7 @@ namespace Winter
                         this.ResetSinceSpotifyIsNotRunning();
                     }
                 }
-            }
+            
         }
 
         public override void Unload()

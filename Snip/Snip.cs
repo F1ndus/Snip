@@ -61,7 +61,7 @@ namespace Winter
             Globals.CurrentPlayer = new MediaPlayer();
 
             this.LoadSettings();
-            this.timerScanMediaPlayer.Enabled = true;
+            this.timerScanMediaPlayer.Enabled = true;        
 
             // Register global hotkeys
             this.ToggleHotkeys();

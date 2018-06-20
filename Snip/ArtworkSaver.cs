@@ -31,7 +31,13 @@ namespace Winter
 
         public void getCover(PlaybackContext con)
         {
-            DownloadSpotifyAlbumArtwork(con.Item.Album.Images.First());
+            try
+            {
+                DownloadSpotifyAlbumArtwork(con.Item.Album.Images.First());
+            } catch(NullReferenceException e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
 
@@ -105,9 +111,13 @@ namespace Winter
             using (WebClientWithShortTimeout webClient = new WebClientWithShortTimeout())
                 try
             {
-                webClient.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko";
+                webClient.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko";              
                 webClient.DownloadFile(image.Url.ToString(), this.defaultArtworkFile);
-                Thread.Sleep(10);
+                    Thread.Sleep(1000);
+                    var f = System.IO.File.AppendText(this.DefaultArtworkFilePath);
+                    f.Write("0");
+                    f.Close();
+                
             }
 
             catch (Exception)

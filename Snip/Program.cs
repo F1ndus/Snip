@@ -27,31 +27,84 @@ namespace Winter
     using SpotifyAPI.Web.Auth; //All Authentication-related classes
     using SpotifyAPI.Web.Enums; //Enums
     using SpotifyAPI.Web.Models; //Models for the JSON-response
+    using SpotifyAPI.Web.Auth;
+    using System.Net;
 
     public static class Program
     {
+
+        static AutorizationCodeAuth auth;
 
         public static SpotifyWebAPI spotify = null;
 
         public static async void meem()
         {
-            WebAPIFactory webApiFactory = new WebAPIFactory(
-                    "http://localhost",
-                    8000,
-                    "x",
-                    Scope.UserReadPlaybackState,
-                    TimeSpan.FromSeconds(20)
-               );
+   
+            auth = new AutorizationCodeAuth()
+            {
+                //Your client Id
+                ClientId = "b6ddbd76e2444d3081e2582f1b8b8255",
+                //Set this to localhost if you want to use the built-in HTTP Server
+                RedirectUri = "http://localhost:8000/callback",
+                //How many permissions we need?
+                Scope = Scope.UserReadPlaybackState,
+            };
+            //This will be called, if the user cancled/accept the auth-request
 
-            spotify = await webApiFactory.GetWebApi();
+            //auth.OnResponseReceivedEvent += auth_OnResponseReceivedEvent;
+            
+            //a local HTTP Server will be started (Needed for the response)
+            //auth.StartHttpServer(8000);
+            //This will open the spotify auth-page. The user can decline/accept the request
+            auth.DoAuth();
+            Thread.Sleep(5000);
+            //auth.StopHttpServer();
+            Console.WriteLine("Too long, didnt respond, exiting now...");
 
-       
+            using (WebClient client = new WebClient())
+            {
+                string htmlCode = client.DownloadString("http://localhost:8000/get_token");
+                spotify = new SpotifyWebAPI()
+                {
+                    TokenType = "Bearer",
+                    AccessToken = htmlCode
+                };
+
+                new Thread(() =>
+                {
+                    var lastUpdate = new DateTime(1900, 1, 1);
+                    while(true)
+                    {
+                        try
+                        {
+                            var currentTime = DateTime.Now;
+                            if ((currentTime.ToUnixTimeMillisecondsPoly() -
+                            lastUpdate.ToUnixTimeMillisecondsPoly()) > 1800000)
+                            {
+                                Thread.CurrentThread.IsBackground = true;
+                                Console.WriteLine("Started Token refresh Thread");
+                                client.DownloadData("http://localhost:8000/token");
+                                spotify.AccessToken = client.DownloadString("http://localhost:8000/get_token");
+                                lastUpdate = currentTime;
+                            }
+                        } catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
+                                            
+                        Thread.Sleep(1000);
+                    }
+                   
+                }).Start();
+            }
         }
+
 
         public static  void Main(String[] args)
         {
-
-            meem();
+            try
+            {
+                meem();
 
             
                
@@ -88,6 +141,14 @@ namespace Winter
                     mutex.Close();
                 }
             }
+
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+
         }
     }
 }
